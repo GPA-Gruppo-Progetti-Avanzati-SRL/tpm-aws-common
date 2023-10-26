@@ -1,4 +1,4 @@
-module tpm-aws-common
+module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-aws-common
 
 go 1.21
 
