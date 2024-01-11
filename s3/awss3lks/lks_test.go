@@ -2,6 +2,8 @@ package awss3lks_test
 
 import (
 	"context"
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-aws-common/s3/awss3lks"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -10,19 +12,22 @@ import (
 	"github.com/stretchr/testify/require"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 )
 
 const (
-	TargetContainer     = "r3ds9-s3-test-cnt"
+	//TargetContainer     = "r3ds9-s3-test-cnt"
+	TargetContainer     = "r3ds9-s3-user-cnt"
 	DropContainerOnExit = false
 
 	AWSCommonAccessKeyEnvVarName = "AWSCOMMON_ACCESSKEY"
 	AWSCommonSecretKeyEnvVarName = "AWSCOMMON_SECRETKEY"
 	AWSCommonEndpointEnvVarName  = "AWSCOMMON_ENDPOINT"
 )
+
+//go:embed test-image.jpg
+var img []byte
 
 func TestClient(t *testing.T) {
 
@@ -45,7 +50,11 @@ func TestClient(t *testing.T) {
 		t.Log(b)
 	}
 
-	blob, err := lks.UploadFile(TargetContainer, "p1", "zucca  mia bella zucca!.txt", "config.go", "text/plain", true)
+	blob, err := lks.UploadBuffer(TargetContainer, "", "user-photo.jpg", img, "image/jpeg", true)
+	require.NoError(t, err)
+	t.Log(blob)
+
+	blob, err = lks.UploadFile(TargetContainer, "p1", "zucca  mia bella zucca!.txt", "config.go", "text/plain", true)
 	require.NoError(t, err)
 	t.Log(blob)
 
@@ -60,16 +69,26 @@ func TestClient(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("Page:", pr.Page(), "Num objs:", len(objs))
 	for _, o := range objs {
-		t.Log(filepath.Join(lks.PublicUrlOf(TargetContainer), *o.Key))
+		logBlobInfo(t, o)
 	}
 	for eol {
 		objs, eol, err = pr.Next()
 		require.NoError(t, err)
 		t.Log("Page:", pr.Page(), "Num objs:", len(objs))
 		for _, o := range objs {
-			t.Log(filepath.Join(lks.PublicUrlOf(TargetContainer), *o.Key))
+			logBlobInfo(t, o)
 		}
 	}
+}
+
+func logBlobInfo(t *testing.T, bl awss3lks.BlobInfo) {
+	b, err := json.Marshal(bl)
+	require.NoError(t, err)
+	t.Log(string(b))
+
+	ep, err := bl.PublicEndpoint()
+	require.NoError(t, err)
+	t.Log("url: ", ep)
 }
 
 func TestWellFormed(t *testing.T) {

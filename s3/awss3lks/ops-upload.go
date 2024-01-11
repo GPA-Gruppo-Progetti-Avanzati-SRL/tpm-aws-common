@@ -16,7 +16,7 @@ func (lks *LinkedService) UploadBuffer(bucketName string, objectPath, name strin
 	const semLogContext = "aws-s3-lks::upload-file"
 	reader := bytes.NewReader(data)
 
-	blob, err := lks.upload(lks.Cli, bucketName, objectPath, name, reader, contentType, public)
+	blob, err := lks.upload(lks.Cli, bucketName, objectPath, name, reader, len(data), contentType, public)
 	if err != nil {
 		log.Error().Err(err).Bool("public", public).Str("bucket-name", bucketName).Str("name", name).Str("object-path", objectPath).Msg(semLogContext)
 	}
@@ -32,7 +32,7 @@ func (lks *LinkedService) UploadFile(bucketName string, objectPath, name string,
 		log.Error().Err(err).Bool("public", public).Str("file-name", fileName).Str("bucket-name", bucketName).Str("name", name).Str("object-path", objectPath).Msg(semLogContext)
 	} else {
 		defer file.Close()
-		blob, err = lks.upload(lks.Cli, bucketName, objectPath, name, file, contentType, public)
+		blob, err = lks.upload(lks.Cli, bucketName, objectPath, name, file, -1, contentType, public)
 		if err != nil {
 			log.Error().Err(err).Bool("public", public).Str("file-name", fileName).Str("bucket-name", bucketName).Str("name", name).Str("object-path", objectPath).Msg(semLogContext)
 		}
@@ -40,7 +40,7 @@ func (lks *LinkedService) UploadFile(bucketName string, objectPath, name string,
 	return blob, err
 }
 
-func (lks *LinkedService) upload(cli *s3.Client, bucketName string, objectPath, name string, reader io.Reader, contentType string, public bool) (BlobInfo, error) {
+func (lks *LinkedService) upload(cli *s3.Client, bucketName string, objectPath, name string, reader io.Reader, size int, contentType string, public bool) (BlobInfo, error) {
 
 	const semLogContext = "aws-s3-lks::upload"
 
@@ -57,9 +57,11 @@ func (lks *LinkedService) upload(cli *s3.Client, bucketName string, objectPath, 
 	}
 
 	blob := BlobInfo{
-		Name:      objectKey,
-		Container: bucketName,
-		Public:    public,
+		publicEndpoint: lks.ContainerPublicUrl(bucketName),
+		Key:            objectKey,
+		Container:      bucketName,
+		Public:         public,
+		Size:           size,
 	}
 
 	acl := types.ObjectCannedACL("")
@@ -69,7 +71,7 @@ func (lks *LinkedService) upload(cli *s3.Client, bucketName string, objectPath, 
 
 	respOut, err := cli.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket:      aws.String(bucketName),
-		Key:         aws.String(blob.Name),
+		Key:         aws.String(blob.Key),
 		Body:        reader,
 		ACL:         acl,
 		ContentType: aws.String(contentType),
@@ -82,6 +84,10 @@ func (lks *LinkedService) upload(cli *s3.Client, bucketName string, objectPath, 
 
 	if respOut.VersionId != nil {
 		blob.Version = *respOut.VersionId
+	}
+
+	if respOut.ETag != nil {
+		blob.ETag = *respOut.ETag
 	}
 
 	return blob, nil

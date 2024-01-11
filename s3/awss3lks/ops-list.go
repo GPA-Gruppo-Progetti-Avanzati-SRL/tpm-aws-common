@@ -41,7 +41,7 @@ func (lks *LinkedService) NewListObjectsPager(bucketName string, pageSize int) L
 	return ListObjectsPager{lks: lks, bucketName: bucketName, maxKeys: pageSize}
 }
 
-func (qry *ListObjectsPager) Next() ([]types.Object, bool, error) {
+func (qry *ListObjectsPager) Next() ([]BlobInfo, bool, error) {
 
 	const semLogContext = "aws-s3-lks::list-objects"
 
@@ -66,12 +66,23 @@ func (qry *ListObjectsPager) Next() ([]types.Object, bool, error) {
 		return nil, false, err
 	}
 
-	var contents []types.Object
-	contents = result.Contents
+	var contents []BlobInfo
+	contents = qry.adaptToBlobInfo(qry.bucketName, result.Contents)
 
 	if result.NextContinuationToken != nil && result.IsTruncated {
 		qry.continuationToken = *result.NextContinuationToken
 	}
 
 	return contents, result.IsTruncated, err
+}
+
+func (qry *ListObjectsPager) adaptToBlobInfo(cnt string, objs []types.Object) []BlobInfo {
+
+	var binfos []BlobInfo
+	for _, o := range objs {
+		b := NewBlobInfoFromObject(cnt, o)
+		b.publicEndpoint = qry.lks.ContainerPublicUrl(cnt)
+		binfos = append(binfos, b)
+	}
+	return binfos
 }

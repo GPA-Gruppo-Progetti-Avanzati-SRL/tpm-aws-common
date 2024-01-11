@@ -35,7 +35,7 @@ func NewLinkedService(name string, opts ...Option) (*LinkedService, error) {
 	return NewLinkedServiceWithConfig(cfg)
 }
 
-func (lks *LinkedService) PublicUrlOf(bucketName string) string {
+func (lks *LinkedService) ContainerPublicUrl(bucketName string) string {
 	if lks.cfg.PublicEndpoint != "" {
 		url := strings.Replace(lks.cfg.PublicEndpoint, "{cnt}", bucketName, -1)
 		url = strings.Replace(url, "{region}", lks.cfg.Region, -1)
@@ -43,4 +43,13 @@ func (lks *LinkedService) PublicUrlOf(bucketName string) string {
 	}
 
 	return lks.cfg.PublicEndpoint
+}
+
+func (lks *LinkedService) BlobPublicUrl(bucketName string, blobName string) string {
+	ep := strings.TrimSuffix(lks.ContainerPublicUrl(bucketName), "/")
+	var sb strings.Builder
+	sb.WriteString(ep)
+	sb.WriteString("/")
+	sb.WriteString(blobName)
+	return sb.String()
 }
