@@ -1,8 +1,11 @@
 package awss3lks
 
 import (
+	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/rs/zerolog/log"
 	"strings"
 )
 
@@ -52,4 +55,40 @@ func (lks *LinkedService) BlobPublicUrl(bucketName string, blobName string) stri
 	sb.WriteString("/")
 	sb.WriteString(blobName)
 	return sb.String()
+}
+
+func (lks *LinkedService) GetBucketConfig4Map(category string, m map[string]interface{}) (string, string, error) {
+
+	const semLogContext = "aws-s3-linked-service::get-bucket-cfg-4-map"
+
+	var err error
+	if len(lks.cfg.BucketConfig) == 0 {
+		err = errors.New("no bucket config defined")
+		log.Error().Err(err).Msg(semLogContext)
+		return "", "", err
+	}
+
+	for _, o := range lks.cfg.BucketConfig {
+		if o.Category == "*" || o.Category == category {
+			cnt, path := resolveBucketTemplates(o.Bucket, o.Path, m)
+			return cnt, path, nil
+		}
+	}
+
+	err = fmt.Errorf("no bucket config found for %s", category)
+	log.Error().Err(err).Msg(semLogContext)
+	return "", "", err
+}
+
+func resolveBucketTemplates(bucket string, path string, m map[string]interface{}) (string, string) {
+
+	if strings.Contains(bucket, "{") || strings.Contains(path, "{") {
+		for n, v := range m {
+			s := fmt.Sprintf("{%s}", n)
+			bucket = strings.Replace(bucket, s, fmt.Sprint(v), -1)
+			path = strings.Replace(path, s, fmt.Sprint(v), -1)
+		}
+	}
+
+	return bucket, path
 }
