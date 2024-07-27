@@ -41,7 +41,7 @@ func NewBlobInfoFromObject(bucketName string, obj types.Object) BlobInfo {
 		Public:       false,
 		ETag:         *obj.ETag,
 		LastModified: obj.LastModified.Format(time.RFC3339Nano),
-		Size:         int(obj.Size),
+		Size:         int(*obj.Size), // TODO This can be null as a pointer?
 	}
 
 	log.Trace().Interface("owner", obj.Owner).Msg(semLogContext)

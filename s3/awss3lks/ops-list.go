@@ -28,7 +28,7 @@ func (lks *LinkedService) ListBuckets() ([]string, error) {
 type ListObjectsPager struct {
 	lks               *LinkedService
 	bucketName        string
-	maxKeys           int
+	maxKeys           int32
 	continuationToken string
 	pageNumber        int
 }
@@ -38,7 +38,7 @@ func (pr *ListObjectsPager) Page() int {
 }
 
 func (lks *LinkedService) NewListObjectsPager(bucketName string, pageSize int) ListObjectsPager {
-	return ListObjectsPager{lks: lks, bucketName: bucketName, maxKeys: pageSize}
+	return ListObjectsPager{lks: lks, bucketName: bucketName, maxKeys: int32(pageSize)}
 }
 
 func (qry *ListObjectsPager) Next() ([]BlobInfo, bool, error) {
@@ -50,7 +50,7 @@ func (qry *ListObjectsPager) Next() ([]BlobInfo, bool, error) {
 	}
 
 	if qry.maxKeys > 0 {
-		input.MaxKeys = int32(qry.maxKeys)
+		input.MaxKeys = &qry.maxKeys
 	}
 
 	if qry.continuationToken != "" {
@@ -69,11 +69,11 @@ func (qry *ListObjectsPager) Next() ([]BlobInfo, bool, error) {
 	var contents []BlobInfo
 	contents = qry.adaptToBlobInfo(qry.bucketName, result.Contents)
 
-	if result.NextContinuationToken != nil && result.IsTruncated {
+	if result.NextContinuationToken != nil && result.IsTruncated != nil && *result.IsTruncated {
 		qry.continuationToken = *result.NextContinuationToken
 	}
 
-	return contents, result.IsTruncated, err
+	return contents, result.IsTruncated != nil && *result.IsTruncated, err
 }
 
 func (qry *ListObjectsPager) adaptToBlobInfo(cnt string, objs []types.Object) []BlobInfo {
