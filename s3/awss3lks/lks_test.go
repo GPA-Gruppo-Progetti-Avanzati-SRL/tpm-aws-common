@@ -19,6 +19,8 @@ import (
 const (
 	//TargetContainer     = "r3ds9-s3-test-cnt"
 	TargetContainer     = "r3ds9-s3-user-cnt"
+	Region              = "gra"
+	PublicEndpoint      = "https://{cnt}.s3.{region}.io.cloud.ovh.net/"
 	DropContainerOnExit = false
 
 	AWSCommonAccessKeyEnvVarName = "AWSCOMMON_ACCESSKEY"
@@ -35,8 +37,8 @@ func TestClient(t *testing.T) {
 		Endpoint:       os.Getenv(AWSCommonEndpointEnvVarName),
 		AccessKey:      os.Getenv(AWSCommonAccessKeyEnvVarName),
 		SecretKey:      os.Getenv(AWSCommonSecretKeyEnvVarName),
-		Region:         "gra",
-		PublicEndpoint: "https://{cnt}.s3.{region}.io.cloud.ovh.net/",
+		Region:         Region,
+		PublicEndpoint: PublicEndpoint,
 	}
 
 	require.True(t, cfg.Endpoint != "")

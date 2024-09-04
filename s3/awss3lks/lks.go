@@ -1,8 +1,10 @@
 package awss3lks
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
@@ -17,12 +19,22 @@ type LinkedService struct {
 func NewLinkedServiceWithConfig(cfg Config) (*LinkedService, error) {
 	credProvider := credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, "")
 
-	baseEndpoint := cfg.Endpoint
-	serviceClient := s3.New(s3.Options{
-		BaseEndpoint: &baseEndpoint,
-		Credentials:  credProvider,
-		Region:       cfg.Region,
-	})
+	var serviceClient *s3.Client
+	if cfg.UseSharedAWSConfig {
+		s3Cfg, err := config.LoadDefaultConfig(context.TODO())
+		if err != nil {
+			return nil, err
+		}
+
+		serviceClient = s3.NewFromConfig(s3Cfg)
+	} else {
+		baseEndpoint := cfg.Endpoint
+		serviceClient = s3.New(s3.Options{
+			BaseEndpoint: &baseEndpoint,
+			Credentials:  credProvider,
+			Region:       cfg.Region,
+		})
+	}
 
 	lks := &LinkedService{cfg: cfg, Cli: serviceClient}
 	return lks, nil
