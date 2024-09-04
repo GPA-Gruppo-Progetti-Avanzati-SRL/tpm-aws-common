@@ -8,7 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
+	"net/http"
 	"strings"
+	"time"
 )
 
 type LinkedService struct {
@@ -21,7 +23,19 @@ func NewLinkedServiceWithConfig(cfg Config) (*LinkedService, error) {
 
 	var serviceClient *s3.Client
 	if cfg.UseSharedAWSConfig {
-		s3Cfg, err := config.LoadDefaultConfig(context.TODO())
+
+		transport := &http.Transport{
+			MaxIdleConns:        100,              // Numero totale di connessioni idle consentite
+			MaxIdleConnsPerHost: 100,              // Numero massimo di connessioni per host
+			IdleConnTimeout:     90 * time.Second, // Tempo di timeout per connessioni idle
+		}
+
+		// Crea un client HTTP personalizzato con il trasporto configurato
+		httpClient := &http.Client{
+			Transport: transport,
+		}
+
+		s3Cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithHTTPClient(httpClient))
 		if err != nil {
 			return nil, err
 		}
