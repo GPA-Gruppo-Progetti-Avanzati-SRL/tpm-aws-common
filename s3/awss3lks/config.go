@@ -15,6 +15,7 @@ type Config struct {
 	PublicEndpoint     string      `mapstructure:"public-url,omitempty"  yaml:"public-url,omitempty" json:"public-url,omitempty"`
 	BucketConfig       []BucketCfg `mapstructure:"buckets,omitempty"  yaml:"buckets,omitempty" json:"buckets,omitempty"`
 	UseSharedAWSConfig bool        `mapstructure:"with-shared-cfg,omitempty"  yaml:"with-shared-cfg,omitempty" json:"with-shared-cfg,omitempty"`
+	UseGoogleConfig    bool        `mapstructure:"use-google-config,omitempty"  yaml:"use-google-config,omitempty" json:"use-google-config,omitempty"`
 }
 
 type Option func(cfg *Config)
