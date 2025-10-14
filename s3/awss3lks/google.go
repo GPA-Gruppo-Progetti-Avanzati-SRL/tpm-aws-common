@@ -1,13 +1,13 @@
 package awss3lks
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"time"
 
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/rs/zerolog/log"
 )
 
 type RecalculateV4Signature struct {
@@ -37,9 +37,8 @@ func (lt *RecalculateV4Signature) RoundTrip(req *http.Request) (*http.Response, 
 	// Reset Accept-Encoding if desired
 	req.Header.Set("Accept-Encoding", val)
 
-	fmt.Println("AfterAdjustment")
 	rrr, _ := httputil.DumpRequest(req, false)
-	fmt.Println(string(rrr))
+	log.Trace().Msg(string(rrr))
 
 	// follows up the original round tripper
 	return lt.next.RoundTrip(req)
