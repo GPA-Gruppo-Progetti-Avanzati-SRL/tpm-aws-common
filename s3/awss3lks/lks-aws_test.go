@@ -3,10 +3,11 @@ package awss3lks_test
 import (
 	_ "embed"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-aws-common/s3/awss3lks"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-aws-common/s3/awss3lks"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -20,8 +21,14 @@ const (
 	// AWSCommonSecretKeyEnvVarName = "AWSCOMMON_SECRETKEY"
 	// AWSCommonEndpointEnvVarName  = "AWSCOMMON_ENDPOINT"
 
-	AWS_TargetContainer = "delta-tests"
-	AWS_Region          = "eu-north-1"
+	//AWS_TargetContainer = "delta-tests"
+	//AWS_Region          = "eu-north-1"
+	//AWS_PublicEndpoint  = "https://{cnt}.s3.{region}.amazonaws.com/"
+	//MAXObjectsToUpload  = 1000
+	//DoRetrieve          = false
+
+	AWS_TargetContainer = "gpagroup-dev-opem-flussi"
+	AWS_Region          = "eu-central-1"
 	AWS_PublicEndpoint  = "https://{cnt}.s3.{region}.amazonaws.com/"
 	MAXObjectsToUpload  = 1000
 	DoRetrieve          = false
@@ -37,7 +44,7 @@ func TestClientAWS(t *testing.T) {
 		PublicEndpoint: "", // AWS_PublicEndpoint,
 	}
 
-	cfg.Endpoint = "https://s3.eu-north-1.amazonaws.com"
+	cfg.Endpoint = "https://s3.eu-central-1.amazonaws.com"
 	require.True(t, cfg.Endpoint != "")
 	require.True(t, cfg.AccessKey != "")
 	require.True(t, cfg.SecretKey != "")
