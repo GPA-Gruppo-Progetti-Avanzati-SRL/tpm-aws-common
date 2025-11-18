@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type LinkedService struct {
@@ -36,10 +39,19 @@ func NewLinkedServiceWithConfig(cfg Config) (*LinkedService, error) {
 		}
 
 		s3Cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithHTTPClient(httpClient))
+
 		if err != nil {
 			return nil, err
 		}
 
+		serviceClient = s3.NewFromConfig(s3Cfg)
+	} else if cfg.UseGoogleConfig {
+		s3Cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(credProvider), config.WithRegion(cfg.Region), config.WithBaseEndpoint(cfg.Endpoint))
+		if err != nil {
+			return nil, err
+		}
+		s3Cfg.HTTPClient = &http.Client{Transport: &RecalculateV4Signature{http.DefaultTransport, v4.NewSigner(), cfg}}
+		s3Cfg.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
 		serviceClient = s3.NewFromConfig(s3Cfg)
 	} else {
 		baseEndpoint := cfg.Endpoint
