@@ -3,13 +3,14 @@ package awss3lks
 import (
 	"bytes"
 	"context"
+	"io"
+	"os"
+	"path/filepath"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/rs/zerolog/log"
-	"io"
-	"os"
-	"path/filepath"
 )
 
 func (lks *LinkedService) UploadBuffer(bucketName string, objectPath, name string, data []byte, contentType string, public bool) (BlobInfo, error) {

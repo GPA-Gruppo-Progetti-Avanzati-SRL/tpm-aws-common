@@ -95,7 +95,7 @@ func (lks *LinkedService) BlobPublicUrl(bucketName string, blobName string) stri
 	return sb.String()
 }
 
-func (lks *LinkedService) GetBucketConfig4Map(category string, m map[string]interface{}) (string, string, error) {
+func (lks *LinkedService) GetBucketConfig4Map(tag string, m map[string]interface{}) (string, string, error) {
 
 	const semLogContext = "aws-s3-linked-service::get-bucket-cfg-4-map"
 
@@ -107,13 +107,13 @@ func (lks *LinkedService) GetBucketConfig4Map(category string, m map[string]inte
 	}
 
 	for _, o := range lks.cfg.BucketConfig {
-		if o.Category == "*" || o.Category == category {
+		if o.Tag == "*" || o.Tag == tag {
 			cnt, path := resolveBucketTemplates(o.Bucket, o.Path, m)
 			return cnt, path, nil
 		}
 	}
 
-	err = fmt.Errorf("no bucket config found for %s", category)
+	err = fmt.Errorf("no bucket config found for %s", tag)
 	log.Error().Err(err).Msg(semLogContext)
 	return "", "", err
 }

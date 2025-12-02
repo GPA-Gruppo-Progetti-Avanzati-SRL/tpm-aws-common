@@ -2,10 +2,11 @@ package awss3lks
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/rs/zerolog/log"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/rs/zerolog/log"
 )
 
 type BlobInfo struct {

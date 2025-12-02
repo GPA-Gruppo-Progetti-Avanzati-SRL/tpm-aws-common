@@ -1,6 +1,7 @@
 package awss3lks_test
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"os"
@@ -87,4 +88,26 @@ func TestClientAWS(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestDownload(t *testing.T) {
+	cfg := awss3lks.Config{
+		Endpoint:       os.Getenv(AWSCommonEndpointEnvVarName),
+		AccessKey:      os.Getenv(AWSCommonAccessKeyEnvVarName),
+		SecretKey:      os.Getenv(AWSCommonSecretKeyEnvVarName),
+		Region:         os.Getenv(AWSS3RegionEnvVarName),
+		PublicEndpoint: "", // AWS_PublicEndpoint,
+	}
+
+	require.True(t, cfg.Endpoint != "")
+	require.True(t, cfg.AccessKey != "")
+	require.True(t, cfg.SecretKey != "")
+
+	lks, err := awss3lks.NewLinkedServiceWithConfig(cfg)
+	require.NoError(t, err)
+
+	b, err := lks.DownloadFile(context.Background(), "opem-warehousereportrange-10000", "range/cms_10000_PLD001_L6_AM_RUOWR001_1763486778", awss3lks.BlobRange{End: 10})
+	require.NoError(t, err)
+
+	t.Log(string(b))
 }

@@ -5,15 +5,16 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-aws-common/s3/awss3lks"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/stretchr/testify/require"
-	"log"
-	"os"
-	"strings"
-	"testing"
 )
 
 const (
@@ -23,9 +24,10 @@ const (
 	PublicEndpoint      = "https://{cnt}.s3.{region}.io.cloud.ovh.net/"
 	DropContainerOnExit = false
 
-	AWSCommonAccessKeyEnvVarName = "AWSCOMMON_ACCESSKEY"
-	AWSCommonSecretKeyEnvVarName = "AWSCOMMON_SECRETKEY"
-	AWSCommonEndpointEnvVarName  = "AWSCOMMON_ENDPOINT"
+	AWSCommonAccessKeyEnvVarName = "AWS_S3_ACCESS_KEY"
+	AWSCommonSecretKeyEnvVarName = "AWS_S3_SECRET_KEY"
+	AWSCommonEndpointEnvVarName  = "AWS_S3_ENDPOINT"
+	AWSS3RegionEnvVarName        = "AWS_S3_REGION"
 )
 
 //go:embed test-image.jpg
