@@ -95,7 +95,7 @@ func (lks *LinkedService) BlobPublicUrl(bucketName string, blobName string) stri
 	return sb.String()
 }
 
-func (lks *LinkedService) GetBucketConfig4Map(tag string, m map[string]interface{}) (string, string, error) {
+func (lks *LinkedService) GetBucketConfig4Map(tag string, m map[string]interface{}) ([]string, string, error) {
 
 	const semLogContext = "aws-s3-linked-service::get-bucket-cfg-4-map"
 
@@ -103,30 +103,40 @@ func (lks *LinkedService) GetBucketConfig4Map(tag string, m map[string]interface
 	if len(lks.cfg.BucketConfig) == 0 {
 		err = errors.New("no bucket config defined")
 		log.Error().Err(err).Msg(semLogContext)
-		return "", "", err
+		return nil, "", err
 	}
 
 	for _, o := range lks.cfg.BucketConfig {
 		if o.Tag == "*" || o.Tag == tag {
-			cnt, path := resolveBucketTemplates(o.Bucket, o.Path, m)
-			return cnt, path, nil
+			cnts, path := resolveBucketTemplates(o.Buckets, o.Path, m)
+			return cnts, path, nil
 		}
 	}
 
 	err = fmt.Errorf("no bucket config found for %s", tag)
 	log.Error().Err(err).Msg(semLogContext)
-	return "", "", err
+	return nil, "", err
 }
 
-func resolveBucketTemplates(bucket string, path string, m map[string]interface{}) (string, string) {
+func resolveBucketTemplates(buckets []string, path string, m map[string]interface{}) ([]string, string) {
+	var resolvedBuckets []string
+	for _, bck := range buckets {
+		if strings.Contains(bck, "{") {
+			for n, v := range m {
+				s := fmt.Sprintf("{%s}", n)
+				bck = strings.Replace(bck, s, fmt.Sprint(v), -1)
+			}
+		}
 
-	if strings.Contains(bucket, "{") || strings.Contains(path, "{") {
+		resolvedBuckets = append(resolvedBuckets, bck)
+	}
+
+	if strings.Contains(path, "{") {
 		for n, v := range m {
 			s := fmt.Sprintf("{%s}", n)
-			bucket = strings.Replace(bucket, s, fmt.Sprint(v), -1)
 			path = strings.Replace(path, s, fmt.Sprint(v), -1)
 		}
 	}
 
-	return bucket, path
+	return resolvedBuckets, path
 }

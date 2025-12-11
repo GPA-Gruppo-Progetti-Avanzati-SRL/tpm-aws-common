@@ -1,9 +1,9 @@
 package awss3lks
 
 type BucketCfg struct {
-	Tag    string `yaml:"tag,omitempty" mapstructure:"tag,omitempty" json:"tag,omitempty"`
-	Bucket string `yaml:"bucket,omitempty" mapstructure:"bucket,omitempty" json:"bucket,omitempty"`
-	Path   string `yaml:"path,omitempty" mapstructure:"path,omitempty" json:"path,omitempty"`
+	Tag     string   `yaml:"tag,omitempty" mapstructure:"tag,omitempty" json:"tag,omitempty"`
+	Buckets []string `yaml:"buckets,omitempty" mapstructure:"buckets,omitempty" json:"buckets,omitempty"`
+	Path    string   `yaml:"path,omitempty" mapstructure:"path,omitempty" json:"path,omitempty"`
 }
 
 type Config struct {
