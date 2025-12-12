@@ -41,11 +41,11 @@ func TestClientAWS(t *testing.T) {
 		Endpoint:       os.Getenv(AWSCommonEndpointEnvVarName),
 		AccessKey:      os.Getenv(AWSCommonAccessKeyEnvVarName),
 		SecretKey:      os.Getenv(AWSCommonSecretKeyEnvVarName),
-		Region:         AWS_Region,
+		Region:         os.Getenv(AWSS3RegionEnvVarName),
 		PublicEndpoint: "", // AWS_PublicEndpoint,
 	}
 
-	cfg.Endpoint = "https://s3.eu-central-1.amazonaws.com"
+	// cfg.Endpoint = "https://s3.eu-central-1.amazonaws.com"
 	require.True(t, cfg.Endpoint != "")
 	require.True(t, cfg.AccessKey != "")
 	require.True(t, cfg.SecretKey != "")
@@ -110,4 +110,24 @@ func TestDownload(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log(string(b))
+}
+
+func TestMove(t *testing.T) {
+	cfg := awss3lks.Config{
+		Endpoint:       os.Getenv(AWSCommonEndpointEnvVarName),
+		AccessKey:      os.Getenv(AWSCommonAccessKeyEnvVarName),
+		SecretKey:      os.Getenv(AWSCommonSecretKeyEnvVarName),
+		Region:         os.Getenv(AWSS3RegionEnvVarName),
+		PublicEndpoint: "", // AWS_PublicEndpoint,
+	}
+
+	require.True(t, cfg.Endpoint != "")
+	require.True(t, cfg.AccessKey != "")
+	require.True(t, cfg.SecretKey != "")
+
+	lks, err := awss3lks.NewLinkedServiceWithConfig(cfg)
+	require.NoError(t, err)
+
+	err = lks.Move("opem-from-istituto-10000-queue", "opem-from-istituto-10000", "", "card_assegnate_20251203.xml")
+	require.NoError(t, err)
 }
