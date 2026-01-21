@@ -106,10 +106,11 @@ func TestDownload(t *testing.T) {
 	lks, err := awss3lks.NewLinkedServiceWithConfig(cfg)
 	require.NoError(t, err)
 
-	b, err := lks.DownloadFile(context.Background(), "opem-warehousereportrange-10000", "range/cms_10000_PLD001_L6_AM_RUOWR001_1763486778", awss3lks.BlobRange{End: 10})
+	b, st, err := lks.DownloadFile(context.Background(), "xyz1-opem-to-istituto-10000-queue-awce", "range/cms_10000_PLD001_L6_AM_RUOWR001_1763486778", awss3lks.BlobRange{End: 10})
+	t.Log("error-code", st)
 	require.NoError(t, err)
 
-	t.Log(string(b))
+	t.Log(st, string(b))
 }
 
 func TestMove(t *testing.T) {

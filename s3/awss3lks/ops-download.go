@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -22,7 +22,7 @@ func (br BlobRange) IsZero() bool {
 }
 
 // DownloadFile gets an object from a bucket and stores it in a local file.
-func (lks *LinkedService) DownloadFile(ctx context.Context, bucketName string, objectKey string, blobRange BlobRange) ([]byte, error) {
+func (lks *LinkedService) DownloadFile(ctx context.Context, bucketName string, objectKey string, blobRange BlobRange) ([]byte, int, error) {
 	const semLogContext = "aws-s3-lks::download-file"
 
 	var rng string
@@ -37,20 +37,16 @@ func (lks *LinkedService) DownloadFile(ctx context.Context, bucketName string, o
 	})
 
 	if err != nil {
-		var noKey *types.NoSuchKey
-		if errors.As(err, &noKey) {
-			log.Error().Err(err).Str("bucket", bucketName).Str("object-key", objectKey).Msg(semLogContext + " - not found")
-			err = noKey
-		} else {
-			log.Error().Err(err).Str("bucket", bucketName).Str("object-key", objectKey).Msg(semLogContext)
-		}
-		return nil, err
+		statusCode, statusText := MapError(err)
+		log.Error().Err(err).Str("bucket", bucketName).Str("object-key", objectKey).Int("status-code", statusCode).Str("status-text", statusText).Msg(semLogContext)
+		return nil, statusCode, errors.New(statusText)
 	}
+
 	defer result.Body.Close()
 	body, err := io.ReadAll(result.Body)
 	if err != nil {
 		log.Error().Err(err).Str("bucket", bucketName).Str("object-key", objectKey).Msg(semLogContext)
 	}
 
-	return body, err
+	return body, http.StatusOK, err
 }
